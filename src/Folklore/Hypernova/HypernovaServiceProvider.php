@@ -5,6 +5,7 @@ namespace Folklore\Hypernova;
 use Blade;
 use Illuminate\Support\ServiceProvider;
 use WF\Hypernova\Renderer;
+use Folklore\Hypernova\Contracts\Renderer as RendererContract;
 
 class HypernovaServiceProvider extends ServiceProvider
 {
@@ -15,16 +16,22 @@ class HypernovaServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->bootBlade();
-
         $this->bootPublishes();
+
+        $this->bootBlade();
     }
 
     public function bootBlade()
     {
-        app('blade')->directive('hypernova', function ($expression) {
-            return "<?php echo app('hypernova')->addJob{$expression}; ?>";
-        });
+        $blade = $this->app['view']->getEngineResolver()->resolve('blade');
+        if ($blade) {
+            $blade->getCompiler()
+                ->directive('hypernova', function ($expression) {
+                    return "<?php ".
+                        "\$uuid = app('hypernova')->addJob({$expression});".
+                        "echo app('hypernova')->renderPlaceholder(\$uuid);?>";
+                });
+        }
     }
 
     public function bootPublishes()
@@ -49,10 +56,13 @@ class HypernovaServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton('hypernova', function ($app) {
-            $host = config('hypernova.host');
-            $port = config('hypernova.port');
-            $renderer = new Renderer($host.':'.$port);
-            return new Hypernova($app, $renderer);
+            return new Hypernova($app);
+        });
+
+        $this->app->bind(RendererContract::class, function ($app) {
+            $host = $app['config']['hypernova.host'];
+            $port = $app['config']['hypernova.port'];
+            return new Renderer($host.':'.$port);
         });
     }
 }

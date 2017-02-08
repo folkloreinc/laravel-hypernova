@@ -2,31 +2,48 @@
 
 namespace Folklore\Hypernova;
 
+use Illuminate\Container\Container;
+use Ramsey\Uuid\Uuid;
+use Folklore\Hypernova\Contracts\Renderer as RendererContract;
+
 class Hypernova
 {
-    protected $app;
-
-    protected $renderer;
+    protected $container;
 
     protected $jobs = [];
 
-    public function __construct($app, $renderer)
+    public function __construct(Container $container)
     {
-        $this->app = $app;
-        $this->renderer = $renderer;
+        $this->container = $container;
     }
 
     public function addJob($component, $data = [])
     {
-        $json = json_encode($data);
         $uuid = Uuid::uuid1()->toString();
-        $job = [
+        $job = is_array($component) ? $component:[
             'name' => $component,
             'data' => $data
         ];
         $this->jobs[$uuid] = $job;
 
-        $this->renderer->addJob($uuid, $job);
+        return $uuid;
+    }
+
+    public function getJob($uuid)
+    {
+        return array_get($this->jobs, $uuid);
+    }
+
+    public function renderPlaceholder($uuid)
+    {
+        $job = $this->getJob($uuid);
+        if (!$job) {
+            return '';
+        }
+
+        $component = $job['name'];
+        $data = $job['data'];
+        $json = json_encode($data);
 
         $attributes = 'data-hypernova-key="'.$component.'" data-hypernova-id="'.$uuid.'"';
         return (
@@ -37,11 +54,20 @@ class Hypernova
         );
     }
 
-    public function render($view)
+    public function render($view = null)
     {
-        return $view->render(function ($view, $contents) {
-            return $this->replaceContents($contents);
-        });
+        if ($view) {
+            return $view->render(function ($view, $contents) {
+                return $this->replaceContents($contents);
+            });
+        }
+
+        $response = $this->renderJobs();
+        $html = [];
+        foreach ($response->results as $uuid => $job) {
+            $html[$uuid] = $job->html;
+        }
+        return $html;
     }
 
     public function modifyResponse($response)
@@ -64,22 +90,21 @@ class Hypernova
 
     protected function renderJobs()
     {
-        return $this->renderer->render();
+        $renderer = $this->container->make(RendererContract::class);
+        foreach ($this->jobs as $uuid => $job) {
+            $renderer->addJob($uuid, $job);
+        }
+        return $renderer->render();
     }
 
     protected function replaceContents($contents)
     {
-        $jobsHtml = $this->renderJobs();
-        foreach ($jobsHtml as $uuid => $html) {
+        $response = $this->renderJobs();
+        foreach ($response->results as $uuid => $html) {
             $start = preg_quote($this->getStartComment($uuid), '/');
             $end = preg_quote($this->getEndComment($uuid), '/');
             $contents = preg_replace('/'.$start.'(.*?)'.$end.'/', $html, $contents);
         }
         return $contents;
-    }
-
-    public function __call($method, $arguments)
-    {
-        return call_user_func_array([$this->hypernova, $method], $arguments);
     }
 }
