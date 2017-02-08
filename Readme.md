@@ -2,10 +2,10 @@
 
 Laravel Hypernova is a package to use the Hypernova server-side rendering service from Airbnb (https://github.com/airbnb/hypernova). It enables you to render Javascript UI views on the server and use it in your Laravel views. The advantage of this technique is that the response will contain the actual HTML of your Javascript views and helps on things like SEO.
 
-[![Latest Stable Version](https://poser.pugx.org/folklore/hypernova/v/stable.svg)](https://packagist.org/packages/folklore/hypernova)
+[![Latest Stable Version](https://poser.pugx.org/folklore/laravel-hypernova/v/stable.svg)](https://packagist.org/packages/folklore/laravel-hypernova)
 [![Build Status](https://travis-ci.org/Folkloreatelier/laravel-hypernova.png?branch=master)](https://travis-ci.org/Folkloreatelier/laravel-hypernova)
 [![Coverage Status](https://coveralls.io/repos/Folkloreatelier/laravel-hypernova/badge.svg?branch=master&service=github)](https://coveralls.io/github/Folkloreatelier/laravel-hypernova?branch=master)
-[![Total Downloads](https://poser.pugx.org/folklore/hypernova/downloads.svg)](https://packagist.org/packages/folklore/hypernova)
+[![Total Downloads](https://poser.pugx.org/folklore/laravel-hypernova/downloads.svg)](https://packagist.org/packages/folklore/laravel-hypernova)
 
 
 ## Installation
@@ -21,7 +21,7 @@ Laravel Hypernova is a package to use the Hypernova server-side rendering servic
 ```json
 {
 	"require": {
-		"folklore/hypernova": "~0.1.0"
+		"folklore/laravel-hypernova": "~0.1.0"
 	}
 }
 ```
