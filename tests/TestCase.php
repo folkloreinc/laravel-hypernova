@@ -17,8 +17,6 @@ class TestCase extends BaseTestCase
         $app['config']->set('view.paths', [
             __DIR__.'/views/'
         ]);
-        $app['config']->set('hypernova.host', 'localhost');
-        $app['config']->set('hypernova.port', 3030);
     }
 
     protected function clearViewCache()
