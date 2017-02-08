@@ -23,9 +23,8 @@ class HypernovaServiceProvider extends ServiceProvider
 
     public function bootBlade()
     {
-        $blade = $this->app['view']->getEngineResolver()->resolve('blade');
-        if ($blade) {
-            $blade->getCompiler()
+        if ($this->app->bound('blade.compiler')) {
+            $this->app['blade.compiler']
                 ->directive('hypernova', function ($expression) {
                     return "<?php ".
                         "\$uuid = app('hypernova')->addJob({$expression});".
