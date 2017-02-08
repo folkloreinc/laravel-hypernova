@@ -3,8 +3,6 @@
 namespace Folklore\Hypernova;
 
 use Closure;
-use Illuminate\Support\Facades\Auth;
-use Hypernova;
 
 class HypernovaMiddleware
 {

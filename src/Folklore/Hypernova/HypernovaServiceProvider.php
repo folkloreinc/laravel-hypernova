@@ -2,10 +2,9 @@
 
 namespace Folklore\Hypernova;
 
-use Blade;
 use Illuminate\Support\ServiceProvider;
-use WF\Hypernova\Renderer;
 use Folklore\Hypernova\Contracts\Renderer as RendererContract;
+use WF\Hypernova\Renderer;
 
 class HypernovaServiceProvider extends ServiceProvider
 {
@@ -21,19 +20,7 @@ class HypernovaServiceProvider extends ServiceProvider
         $this->bootBlade();
     }
 
-    public function bootBlade()
-    {
-        if ($this->app->bound('blade.compiler')) {
-            $this->app['blade.compiler']
-                ->directive('hypernova', function ($expression) {
-                    return "<?php ".
-                        "\$uuid = app('hypernova')->addJob({$expression});".
-                        "echo app('hypernova')->renderPlaceholder(\$uuid);?>";
-                });
-        }
-    }
-
-    public function bootPublishes()
+    protected function bootPublishes()
     {
         // Config file path
         $configFile = __DIR__ . '/../../config/hypernova.php';
@@ -47,6 +34,18 @@ class HypernovaServiceProvider extends ServiceProvider
         ], 'config');
     }
 
+    protected function bootBlade()
+    {
+        if ($this->app->bound('blade.compiler')) {
+            $this->app['blade.compiler']
+                ->directive('hypernova', function ($expression) {
+                    return "<?php ".
+                        "\$uuid = app('hypernova')->addJob({$expression});".
+                        "echo app('hypernova')->renderPlaceholder(\$uuid);?>";
+                });
+        }
+    }
+
     /**
      * Register any application services.
      *
@@ -54,10 +53,20 @@ class HypernovaServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->registerHypernova();
+
+        $this->registerRenderer();
+    }
+
+    protected function registerHypernova()
+    {
         $this->app->singleton('hypernova', function ($app) {
             return new Hypernova($app);
         });
+    }
 
+    protected function registerRenderer()
+    {
         $this->app->bind(RendererContract::class, function ($app) {
             $host = $app['config']['hypernova.host'];
             $port = $app['config']['hypernova.port'];
