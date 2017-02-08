@@ -7,7 +7,7 @@ use Illuminate\Contracts\Console\Kernel as ConsoleKernelContract;
 
 class TestCase extends BaseTestCase
 {
-    protected function setUp()
+    public function setUp()
     {
         parent::setUp();
 
