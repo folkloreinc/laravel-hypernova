@@ -39,7 +39,7 @@ class ServiceProviderTest extends TestCase
         $config = include __DIR__.'/../src/config/hypernova.php';
         $this->assertEquals($config, $this->app['config']['hypernova']);
 
-        $directives = $this->app['blade.compiler']->getCustomDirectives();
+        $directives = $this->app['view.engine.resolver']->resolve('blade')->getCompiler()->getCustomDirectives();
         $this->assertArrayHasKey('hypernova', $directives);
         $output = "<?php ".
             "\$uuid = \$app['hypernova']->addJob('test');".
