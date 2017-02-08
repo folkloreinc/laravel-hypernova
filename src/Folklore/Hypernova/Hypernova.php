@@ -34,6 +34,22 @@ class Hypernova
         return array_get($this->jobs, $uuid);
     }
 
+    public function getJobs()
+    {
+        return $this->jobs;
+    }
+
+    public function setJobs($jobs)
+    {
+        $this->jobs = $jobs;
+        return $this;
+    }
+
+    public function clearJobs()
+    {
+        return $this->setJobs([]);
+    }
+
     public function renderPlaceholder($uuid)
     {
         $job = $this->getJob($uuid);
@@ -94,7 +110,21 @@ class Hypernova
         foreach ($this->jobs as $uuid => $job) {
             $renderer->addJob($uuid, $job);
         }
-        return $renderer->render();
+        $response = $renderer->render();
+
+        $results = [];
+        foreach ($response->results as $uuid => $job) {
+            $html = preg_replace(
+                '/data-hypernova-id\=\"[^\"]+\"/i',
+                'data-hypernova-id="'.$uuid.'"',
+                $job->html
+            );
+            $job->html = $html;
+            $results[$uuid] = $job;
+        }
+        $response->results = $results;
+
+        return $response;
     }
 
     protected function replaceContents($contents)

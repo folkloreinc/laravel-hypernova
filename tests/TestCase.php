@@ -21,6 +21,36 @@ class TestCase extends BaseTestCase
         $app['config']->set('hypernova.port', 3030);
     }
 
+    protected function assertHtmlForJob($html, $job, $uuid = null)
+    {
+        $document = new \DOMDocument();
+        $document->loadHTML($html);
+        $div = $document->documentElement->getElementsByTagName('div')[0];
+        $this->assertEquals($job['name'], $div->getAttribute('data-hypernova-key'));
+        if ($uuid) {
+            $this->assertEquals($uuid, $div->getAttribute('data-hypernova-id'));
+        } else {
+            $this->assertFalse(empty($div->getAttribute('data-hypernova-id')));
+        }
+
+        $script = $document->documentElement->getElementsByTagName('script')[0];
+        $this->assertEquals($job['name'], $script->getAttribute('data-hypernova-key'));
+        if ($uuid) {
+            $this->assertEquals($uuid, $script->getAttribute('data-hypernova-id'));
+        } else {
+            $this->assertFalse(empty($script->getAttribute('data-hypernova-id')));
+        }
+        $json = trim(
+            preg_replace(
+                '/^\<\!\-\-/',
+                '',
+                preg_replace('/\-\-\>$/', '', $script->textContent)
+            )
+        );
+        $data = json_decode($json, true);
+        $this->assertEquals($job['data'], $data);
+    }
+
     protected function getPackageProviders($app)
     {
         return [

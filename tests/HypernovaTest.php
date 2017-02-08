@@ -7,6 +7,13 @@ class HypernovaTest extends TestCase
 {
     protected $hypernova;
 
+    protected $job = [
+        'name' => 'Component',
+        'data' => [
+            'test' => 1
+        ]
+    ];
+
     protected function getEnvironmentSetUp($app)
     {
         parent::getEnvironmentSetUp($app);
@@ -18,23 +25,37 @@ class HypernovaTest extends TestCase
      * Test adding a job
      *
      * @test
+     * @covers ::__construct
      * @covers ::addJob
      * @covers ::getJob
+     * @covers ::getJobs
+     * @covers ::setJobs
+     * @covers ::clearJobs
      */
     public function testAddJob()
     {
-        $job = [
-            'name' => 'MyComponent',
-            'data' => [
-                'test' => 1
-            ]
-        ];
+        $uuid1 = $this->hypernova->addJob($this->job['name'], $this->job['data']);
+        $this->assertEquals($this->job, $this->hypernova->getJob($uuid1));
 
-        $uuid = $this->hypernova->addJob($job['name'], $job['data']);
-        $this->assertEquals($job, $this->hypernova->getJob($uuid));
+        $uuid2 = $this->hypernova->addJob($this->job);
+        $this->assertEquals($this->job, $this->hypernova->getJob($uuid2));
 
-        $uuid = $this->hypernova->addJob($job);
-        $this->assertEquals($job, $this->hypernova->getJob($uuid));
+        $this->assertEquals([
+            $uuid1 => $this->job,
+            $uuid2 => $this->job
+        ], $this->hypernova->getJobs());
+
+        $this->hypernova->clearJobs();
+        $this->assertEquals([], $this->hypernova->getJobs());
+
+        $this->hypernova->setJobs([
+            $uuid1 => $this->job,
+            $uuid2 => $this->job
+        ]);
+        $this->assertEquals([
+            $uuid1 => $this->job,
+            $uuid2 => $this->job
+        ], $this->hypernova->getJobs());
     }
 
     /**
@@ -42,17 +63,12 @@ class HypernovaTest extends TestCase
      *
      * @test
      * @covers ::renderPlaceholder
+     * @covers ::getStartComment
+     * @covers ::getEndComment
      */
     public function testRenderPlaceholder()
     {
-        $job = [
-            'name' => 'MyComponent',
-            'data' => [
-                'test' => 1
-            ]
-        ];
-
-        $uuid = $this->hypernova->addJob($job['name'], $job['data']);
+        $uuid = $this->hypernova->addJob($this->job['name'], $this->job['data']);
         $placeholder = $this->hypernova->renderPlaceholder($uuid);
 
         $startComment = '<!-- START hypernova['.$uuid.'] -->';
@@ -60,17 +76,77 @@ class HypernovaTest extends TestCase
         $this->assertRegExp('/^'.preg_quote($startComment, '/').'/', $placeholder);
         $this->assertRegExp('/'.preg_quote($endComment, '/').'$/', $placeholder);
 
-        $document = new \DOMDocument();
-        $document->loadHTML($placeholder);
-        $div = $document->documentElement->getElementsByTagName('div')[0];
-        $this->assertEquals($job['name'], $div->getAttribute('data-hypernova-key'));
-        $this->assertEquals($uuid, $div->getAttribute('data-hypernova-id'));
+        $this->assertHtmlForJob($placeholder, $this->job, $uuid);
+    }
 
-        $script = $document->documentElement->getElementsByTagName('script')[0];
-        $this->assertEquals($job['name'], $script->getAttribute('data-hypernova-key'));
-        $this->assertEquals($uuid, $script->getAttribute('data-hypernova-id'));
-        $json = preg_replace('/^\<\!\-\-/', '', preg_replace('/\-\-\>$/', '', $script->textContent));
-        $data = json_decode($json, true);
-        $this->assertEquals($job['data'], $data);
+    /**
+     * Test render
+     *
+     * @test
+     * @covers ::render
+     * @covers ::renderJobs
+     * @covers ::replaceContents
+     * @covers ::getStartComment
+     * @covers ::getEndComment
+     */
+    public function testRender()
+    {
+        $uuid = $this->hypernova->addJob($this->job['name'], $this->job['data']);
+        $html = $this->hypernova->render();
+
+        $this->assertArrayHasKey($uuid, $html);
+        $this->assertHtmlForJob($html[$uuid], $this->job, $uuid);
+
+        $view = view('single');
+        $this->hypernova->clearJobs();
+        $html = $this->hypernova->render($view);
+        $uuid = array_keys($this->hypernova->getJobs())[0];
+        $document = new \DOMDocument();
+        $document->loadHTML($html);
+        $divOther = $document->documentElement->getElementsByTagName('div')[0];
+        $divWrapper = $document->documentElement->getElementsByTagName('div')[1];
+
+        $this->assertEquals('other', $divOther->getAttribute('class'));
+        $this->assertEquals('wrapper', $divWrapper->getAttribute('class'));
+
+        $wrapperHtml = '';
+        $children = $divWrapper->childNodes;
+        foreach ($children as $child) {
+            $wrapperHtml .= $document->saveHTML($child);
+        }
+        $wrapperHtml = trim($wrapperHtml);
+        $this->assertHtmlForJob($wrapperHtml, $this->job, $uuid);
+    }
+
+    /**
+     * Test modifying a response
+     *
+     * @test
+     * @covers ::modifyResponse
+     * @covers ::renderJobs
+     * @covers ::replaceContents
+     * @covers ::getStartComment
+     * @covers ::getEndComment
+     */
+    public function testModifyResponse()
+    {
+        $response = response()->view('single');
+        $html = $this->hypernova->modifyResponse($response);
+        $uuid = array_keys($this->hypernova->getJobs())[0];
+        $document = new \DOMDocument();
+        $document->loadHTML($html);
+        $divOther = $document->documentElement->getElementsByTagName('div')[0];
+        $divWrapper = $document->documentElement->getElementsByTagName('div')[1];
+
+        $this->assertEquals('other', $divOther->getAttribute('class'));
+        $this->assertEquals('wrapper', $divWrapper->getAttribute('class'));
+
+        $wrapperHtml = '';
+        $children = $divWrapper->childNodes;
+        foreach ($children as $child) {
+            $wrapperHtml .= $document->saveHTML($child);
+        }
+        $wrapperHtml = trim($wrapperHtml);
+        $this->assertHtmlForJob($wrapperHtml, $this->job, $uuid);
     }
 }
