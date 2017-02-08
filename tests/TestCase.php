@@ -3,9 +3,17 @@
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Folklore\Image\Exception\FormatException;
 use Orchestra\Testbench\TestCase as BaseTestCase;
+use Illuminate\Contracts\Console\Kernel as ConsoleKernelContract;
 
 class TestCase extends BaseTestCase
 {
+    protected function setUp()
+    {
+        parent::setUp();
+
+        $this->app->make(ConsoleKernelContract::class)->call('view:clear');
+    }
+
     /**
      * Define environment setup.
      *

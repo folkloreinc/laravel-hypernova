@@ -41,7 +41,7 @@ class HypernovaServiceProvider extends ServiceProvider
                 ->directive('hypernova', function ($expression) {
                     return "<?php ".
                         "\$uuid = app('hypernova')->addJob({$expression});".
-                        "echo app('hypernova')->renderPlaceholder(\$uuid);?>";
+                        "echo app('hypernova')->renderPlaceholder(\$uuid); ?>";
                 });
         }
     }
