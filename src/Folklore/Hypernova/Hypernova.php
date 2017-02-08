@@ -18,6 +18,12 @@ class Hypernova
         $this->container = $container;
     }
 
+    public function pushJob($component, $data = [])
+    {
+        $uuid = $this->addJob($component, $data);
+        return $this->renderPlaceholder($uuid);
+    }
+
     public function addJob($component, $data = [])
     {
         $uuid = Uuid::uuid1()->toString();

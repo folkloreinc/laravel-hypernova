@@ -80,6 +80,31 @@ class HypernovaTest extends TestCase
     }
 
     /**
+     * Test pushing job
+     *
+     * @test
+     * @covers ::pushJob
+     * @covers ::addJob
+     * @covers ::renderPlaceholder
+     * @covers ::getStartComment
+     * @covers ::getEndComment
+     */
+    public function testPushJob()
+    {
+        $placeholder = $this->hypernova->pushJob($this->job['name'], $this->job['data']);
+
+        $uuid = array_keys($this->hypernova->getJobs())[0];
+        $this->assertEquals($this->job, $this->hypernova->getJob($uuid));
+
+        $startComment = '<!-- START hypernova['.$uuid.'] -->';
+        $endComment = '<!-- END hypernova['.$uuid.'] -->';
+        $this->assertRegExp('/^'.preg_quote($startComment, '/').'/', $placeholder);
+        $this->assertRegExp('/'.preg_quote($endComment, '/').'$/', $placeholder);
+
+        $this->assertHtmlForJob($placeholder, $this->job, $uuid);
+    }
+
+    /**
      * Test render
      *
      * @test

@@ -40,9 +40,7 @@ class HypernovaServiceProvider extends ServiceProvider
             if (substr($expression, 0, 1) !== '(' || substr($expression, -1) !== ')') {
                 $expression = '('.$expression.')';
             }
-            return "<?php ".
-                "\$uuid = \$app['hypernova']->addJob{$expression};".
-                "echo \$app['hypernova']->renderPlaceholder(\$uuid); ?>";
+            return "<?php echo \$app['hypernova']->pushJob{$expression}; ?>";
         };
         if ($this->app->bound('blade.compiler')) {
             $this->app['blade.compiler']

@@ -41,9 +41,7 @@ class ServiceProviderTest extends TestCase
 
         $directives = $this->app['view.engine.resolver']->resolve('blade')->getCompiler()->getCustomDirectives();
         $this->assertArrayHasKey('hypernova', $directives);
-        $output = "<?php ".
-            "\$uuid = \$app['hypernova']->addJob('test');".
-            "echo \$app['hypernova']->renderPlaceholder(\$uuid); ?>";
+        $output = "<?php echo \$app['hypernova']->pushJob('test'); ?>";
         $this->assertEquals($output, $directives['hypernova']('(\'test\')'));
         $this->assertEquals($output, $directives['hypernova']('\'test\''));
     }
