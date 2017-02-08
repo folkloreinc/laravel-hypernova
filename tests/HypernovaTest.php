@@ -54,6 +54,12 @@ class HypernovaTest extends TestCase
 
         $uuid = $this->hypernova->addJob($job['name'], $job['data']);
         $placeholder = $this->hypernova->renderPlaceholder($uuid);
+
+        $startComment = '<!-- START hypernova['.$uuid.'] -->';
+        $endComment = '<!-- END hypernova['.$uuid.'] -->';
+        $this->assertRegExp('/^'.preg_quote($startComment, '/').'/', $placeholder);
+        $this->assertRegExp('/'.preg_quote($endComment, '/').'$/', $placeholder);
+
         $document = new \DOMDocument();
         $document->loadHTML($placeholder);
         $div = $document->documentElement->getElementsByTagName('div')[0];
