@@ -6,6 +6,7 @@ use Illuminate\Container\Container;
 use Ramsey\Uuid\Uuid;
 use Folklore\Hypernova\Contracts\Renderer as RendererContract;
 use Symfony\Component\HttpFoundation\Response as BaseResponse;
+use Illuminate\Contracts\Support\Renderable;
 
 class Hypernova
 {
@@ -57,9 +58,9 @@ class Hypernova
         return $this->setJobs([]);
     }
 
-    public function renderPlaceholder($uuid)
+    public function renderPlaceholder($uuid, $job = null)
     {
-        $job = $this->getJob($uuid);
+        $job = !$job ? $this->getJob($uuid):$job;
         if (!$job) {
             return '';
         }
@@ -77,20 +78,41 @@ class Hypernova
         );
     }
 
-    public function render($view = null)
+    public function render($component = null, $data = [])
     {
-        if ($view) {
-            return $view->render(function ($view, $contents) {
-                return $this->replaceContents($contents);
-            });
+        if ($component instanceof Renderable) {
+            return $this->renderView($component);
+        } elseif (is_string($component)) {
+            return $this->renderComponent($component, $data);
         }
 
-        $response = $this->renderJobs();
+        $response = $this->renderJobs($this->jobs);
         $html = [];
         foreach ($response->results as $uuid => $job) {
             $html[$uuid] = $job->html;
         }
         return $html;
+    }
+
+    public function renderView($view)
+    {
+        return $view->render(function ($view, $contents) {
+            return $this->replaceContents($contents);
+        });
+    }
+
+    public function renderComponent($name, $data = [])
+    {
+        $uuid = Uuid::uuid1()->toString();
+        $job = [
+            'name' => $name,
+            'data' => $data
+        ];
+        $response = $this->renderJobs([
+            $uuid => $job
+        ]);
+        return isset($response->results[$uuid]) ?
+            $response->results[$uuid]->html:$this->renderPlaceholder($uuid, $job);
     }
 
     public function modifyResponse($response)
@@ -119,10 +141,10 @@ class Hypernova
         return '<!-- END hypernova['.$uuid.'] -->';
     }
 
-    protected function renderJobs()
+    protected function renderJobs($jobs)
     {
         $renderer = $this->container->make(RendererContract::class);
-        foreach ($this->jobs as $uuid => $job) {
+        foreach ($jobs as $uuid => $job) {
             $renderer->addJob($uuid, $job);
         }
         $response = $renderer->render();
@@ -144,7 +166,7 @@ class Hypernova
 
     protected function replaceContents($contents)
     {
-        $response = $this->renderJobs();
+        $response = $this->renderJobs($this->jobs);
         foreach ($response->results as $uuid => $html) {
             $start = preg_quote($this->getStartComment($uuid), '/');
             $end = preg_quote($this->getEndComment($uuid), '/');

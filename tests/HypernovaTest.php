@@ -77,6 +77,17 @@ class HypernovaTest extends TestCase
         $this->assertRegExp('/'.preg_quote($endComment, '/').'$/', $placeholder);
 
         $this->assertHtmlForJob($placeholder, $this->job, $uuid);
+
+        // From job
+        $uuid = 'test';
+        $placeholder = $this->hypernova->renderPlaceholder($uuid, $this->job);
+
+        $startComment = '<!-- START hypernova['.$uuid.'] -->';
+        $endComment = '<!-- END hypernova['.$uuid.'] -->';
+        $this->assertRegExp('/^'.preg_quote($startComment, '/').'/', $placeholder);
+        $this->assertRegExp('/'.preg_quote($endComment, '/').'$/', $placeholder);
+
+        $this->assertHtmlForJob($placeholder, $this->job, $uuid);
     }
 
     /**
@@ -121,9 +132,22 @@ class HypernovaTest extends TestCase
 
         $this->assertArrayHasKey($uuid, $html);
         $this->assertHtmlForJob($html[$uuid], $this->job, $uuid);
+    }
 
+    /**
+     * Test render from view
+     *
+     * @test
+     * @covers ::render
+     * @covers ::renderView
+     * @covers ::renderJobs
+     * @covers ::replaceContents
+     * @covers ::getStartComment
+     * @covers ::getEndComment
+     */
+    public function testRenderFromView()
+    {
         $view = view('single');
-        $this->hypernova->clearJobs();
         $html = $this->hypernova->render($view);
         $uuid = array_keys($this->hypernova->getJobs())[0];
 
@@ -148,6 +172,29 @@ class HypernovaTest extends TestCase
         $wrapperHtml = trim($wrapperHtml);
         $this->assertHtmlForJob($wrapperHtml, $this->job, $uuid);
         $this->clearViewCache();
+    }
+
+    /**
+     * Test render from view
+     *
+     * @test
+     * @covers ::render
+     * @covers ::renderComponent
+     * @covers ::renderJobs
+     * @covers ::replaceContents
+     * @covers ::getStartComment
+     * @covers ::getEndComment
+     */
+    public function testRenderFromComponent()
+    {
+        $html = $this->hypernova->render($this->job['name'], $this->job['data']);
+
+        $document = new \DOMDocument();
+        $document->loadHTML($html);
+        $div = $document->documentElement->getElementsByTagName('div')[0];
+        $uuid = $div->getAttribute('data-hypernova-id');
+
+        $this->assertHtmlForJob($html, $this->job, $uuid);
     }
 
     /**

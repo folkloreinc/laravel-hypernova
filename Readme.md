@@ -13,7 +13,7 @@ Laravel Hypernova is a package to use the Hypernova server-side rendering servic
 #### Dependencies:
 
 * [Laravel 5.x](https://github.com/laravel/laravel)
-* [hypernova-php 1.0](https://github.com/wayfair/hypernova-php)
+* [hypernova-php](https://github.com/wayfair/hypernova-php)
 
 #### Installation:
 
