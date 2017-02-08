@@ -101,6 +101,12 @@ class HypernovaTest extends TestCase
         $this->hypernova->clearJobs();
         $html = $this->hypernova->render($view);
         $uuid = array_keys($this->hypernova->getJobs())[0];
+
+        $startComment = '<!-- START hypernova['.$uuid.'] -->';
+        $endComment = '<!-- END hypernova['.$uuid.'] -->';
+        $this->assertNotRegExp('/^'.preg_quote($startComment, '/').'/', $html);
+        $this->assertNotRegExp('/'.preg_quote($endComment, '/').'$/', $html);
+
         $document = new \DOMDocument();
         $document->loadHTML($html);
         $divOther = $document->documentElement->getElementsByTagName('div')[0];
@@ -132,8 +138,15 @@ class HypernovaTest extends TestCase
     public function testModifyResponse()
     {
         $response = response()->view('single');
-        $html = $this->hypernova->modifyResponse($response);
+        $response = $this->hypernova->modifyResponse($response);
+        $html = $response->getContent();
         $uuid = array_keys($this->hypernova->getJobs())[0];
+
+        $startComment = '<!-- START hypernova['.$uuid.'] -->';
+        $endComment = '<!-- END hypernova['.$uuid.'] -->';
+        $this->assertNotRegExp('/^'.preg_quote($startComment, '/').'/', $html);
+        $this->assertNotRegExp('/'.preg_quote($endComment, '/').'$/', $html);
+
         $document = new \DOMDocument();
         $document->loadHTML($html);
         $divOther = $document->documentElement->getElementsByTagName('div')[0];

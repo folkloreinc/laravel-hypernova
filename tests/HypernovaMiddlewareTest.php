@@ -27,8 +27,14 @@ class HypernovaMiddlewareTest extends TestCase
             return response()->view('single');
         };
         $response = $middleware->handle(app('request'), $next);
-
+        $html = $response->getContent();
         $uuid = array_keys(app('hypernova')->getJobs())[0];
+
+        $startComment = '<!-- START hypernova['.$uuid.'] -->';
+        $endComment = '<!-- END hypernova['.$uuid.'] -->';
+        $this->assertNotRegExp('/^'.preg_quote($startComment, '/').'/', $html);
+        $this->assertNotRegExp('/'.preg_quote($endComment, '/').'$/', $html);
+
         $document = new \DOMDocument();
         $document->loadHTML($response);
         $divOther = $document->documentElement->getElementsByTagName('div')[0];
