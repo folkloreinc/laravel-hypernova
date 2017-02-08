@@ -3,17 +3,9 @@
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Folklore\Image\Exception\FormatException;
 use Orchestra\Testbench\TestCase as BaseTestCase;
-use Illuminate\Contracts\Console\Kernel as ConsoleKernelContract;
 
 class TestCase extends BaseTestCase
 {
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->app->make(ConsoleKernelContract::class)->call('view:clear');
-    }
-
     /**
      * Define environment setup.
      *
@@ -27,6 +19,11 @@ class TestCase extends BaseTestCase
         ]);
         $app['config']->set('hypernova.host', 'localhost');
         $app['config']->set('hypernova.port', 3030);
+    }
+
+    protected function clearViewCache()
+    {
+        $this->app->make(\Illuminate\Contracts\Console\Kernel::class)->call('view:clear');
     }
 
     protected function assertHtmlForJob($html, $job, $uuid = null)

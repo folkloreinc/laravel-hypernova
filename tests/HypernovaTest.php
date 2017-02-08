@@ -116,6 +116,7 @@ class HypernovaTest extends TestCase
         }
         $wrapperHtml = trim($wrapperHtml);
         $this->assertHtmlForJob($wrapperHtml, $this->job, $uuid);
+        $this->clearViewCache();
     }
 
     /**
@@ -148,5 +149,6 @@ class HypernovaTest extends TestCase
         }
         $wrapperHtml = trim($wrapperHtml);
         $this->assertHtmlForJob($wrapperHtml, $this->job, $uuid);
+        $this->clearViewCache();
     }
 }

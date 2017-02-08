@@ -36,13 +36,21 @@ class HypernovaServiceProvider extends ServiceProvider
 
     protected function bootBlade()
     {
+        $directive = function ($expression) {
+            if (substr($expression, 0, 1) !== '(' || substr($expression, -1) !== ')') {
+                $expression = '('.$expression.')';
+            }
+            return "<?php ".
+                "\$uuid = \$app['hypernova']->addJob{$expression};".
+                "echo \$app['hypernova']->renderPlaceholder(\$uuid); ?>";
+        };
         if ($this->app->bound('blade.compiler')) {
             $this->app['blade.compiler']
-                ->directive('hypernova', function ($expression) {
-                    return "<?php ".
-                        "\$uuid = app('hypernova')->addJob({$expression});".
-                        "echo app('hypernova')->renderPlaceholder(\$uuid); ?>";
-                });
+                ->directive('hypernova', $directive);
+        } else {
+            $this->app->resolving('blade.compiler', function ($compiler, $app) use ($directive) {
+                $compiler->directive('hypernova', $directive);
+            });
         }
     }
 
