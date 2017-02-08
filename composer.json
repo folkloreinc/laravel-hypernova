@@ -1,6 +1,6 @@
 {
-    "name": "folklore/hypernova-php",
-    "description": "PHP client for Hypernova. Supports Laravel",
+    "name": "folklore/laravel-hypernova",
+    "description": "Laravel PHP package to use Hypernova server-side rendering service.",
     "keywords": ["hypernova","react", "laravel","javascript","ui","reactjs"],
     "homepage": "http://github.com/Folkloreatelier/hypernova-php",
     "license": "MIT",
@@ -18,11 +18,12 @@
         }
     ],
     "require": {
-        "php": ">=5.5.9"
+        "php": ">=5.5.9",
+        "illuminate/support": "5.1.*|5.2.*|5.3.*|5.4.*",
+        "wayfair/hypernova-php": "^1.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
-        "illuminate/support": "5.1.*|5.2.*|5.3.*|5.4.*",
         "orchestra/database": "3.1.*|3.2.*|3.3.*|3.4.*@dev",
         "orchestra/testbench": "3.1.*|3.2.*|3.3.*|3.4.*",
         "mockery/mockery": "0.9.*",
@@ -31,9 +32,6 @@
         "symfony/dom-crawler": "2.7.*|2.8.*|3.0.*|3.1.*|3.2.*",
         "satooshi/php-coveralls": "^1.0",
         "php-mock/php-mock-phpunit": "^1.1"
-    },
-    "suggest": {
-        "illuminate/support": "To support laravel"
     },
     "repositories": [
         {

@@ -2,82 +2,84 @@
 
 namespace Folklore\Hypernova;
 
-use GuzzleHttp\Client as HttpClient;
-
 class Hypernova
 {
-    protected $host = 'locahost';
-    protected $port = 3030;
-    protected $client;
+    protected $app;
 
-    public function __construct($config = [])
+    protected $renderer;
+
+    protected $jobs = [];
+
+    public function __construct($app, $renderer)
     {
-        if (isset($config['host'])) {
-            $this->host = $config['host'];
-        }
-
-        if (isset($config['port'])) {
-            $this->port = $config['port'];
-        }
-
-        $this->client = $this->createClient();
+        $this->app = $app;
+        $this->renderer = $renderer;
     }
 
-    protected function createClient()
+    public function addJob($component, $data = [])
     {
-        $uri = 'http://'.$this->host.':'.$this->port;
-        $client = new HttpClient([
-            'base_uri' => $uri,
-            'timeout'  => 2
-        ]);
-
-        return $client;
-    }
-
-    public function render($component, $data = [])
-    {
-        $name = 'component';
-
-        $jobs = [];
-        $jobs[$name] = [
+        $json = json_encode($data);
+        $uuid = Uuid::uuid1()->toString();
+        $job = [
             'name' => $component,
             'data' => $data
         ];
+        $this->jobs[$uuid] = $job;
 
-        $html = $this->renderBatch($jobs);
+        $this->renderer->addJob($uuid, $job);
 
-        return isset($html[$name]) ? $html[$name]:'';
+        $attributes = 'data-hypernova-key="'.$component.'" data-hypernova-id="'.$uuid.'"';
+        return (
+            $this->getStartComment($uuid).
+            '<div '.$attributes.'></div>'.
+            '<script type="application/json" '.$attributes.'><!--'.$json.'--></script>'.
+            $this->getEndComment($uuid)
+        );
     }
 
-    public function renderBatch($jobs)
+    public function render($view)
     {
-        $response = $this->request($jobs);
-
-        $html = [];
-
-        if (!isset($response['results'])) {
-            return $html;
-        }
-
-        foreach ($response['results'] as $key => $result) {
-            $html[$key] = $result['html'];
-        }
-
-        return $html;
+        return $view->render(function ($view, $contents) {
+            return $this->replaceContents($contents);
+        });
     }
 
-    protected function request($jobs)
+    public function modifyResponse($response)
     {
-        try {
-            $response = $this->client->request('POST', '/batch', [
-                'json' => $jobs
-            ]);
+        $content = $response->getContent();
+        $content = $this->replaceContents($content);
+        $response->setContent($content);
+        return $response;
+    }
 
-            $body = json_decode($response->getBody(), true);
+    protected function getStartComment($uuid)
+    {
+        return '<!-- START hypernova['.$uuid.'] -->';
+    }
 
-            return $body;
-        } catch (\Exception $e) {
-            return null;
+    protected function getEndComment($uuid)
+    {
+        return '<!-- END hypernova['.$uuid.'] -->';
+    }
+
+    protected function renderJobs()
+    {
+        return $this->renderer->render();
+    }
+
+    protected function replaceContents($contents)
+    {
+        $jobsHtml = $this->renderJobs();
+        foreach ($jobsHtml as $uuid => $html) {
+            $start = preg_quote($this->getStartComment($uuid), '/');
+            $end = preg_quote($this->getEndComment($uuid), '/');
+            $contents = preg_replace('/'.$start.'(.*?)'.$end.'/', $html, $contents);
         }
+        return $contents;
+    }
+
+    public function __call($method, $arguments)
+    {
+        return call_user_func_array([$this->hypernova, $method], $arguments);
     }
 }

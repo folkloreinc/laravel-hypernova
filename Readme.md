@@ -1,3 +1,3 @@
-# Hypernova PHP
+# Laravel Hypernova
 
 *** in progress ***
