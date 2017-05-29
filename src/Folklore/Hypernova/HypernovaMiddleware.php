@@ -3,6 +3,7 @@
 namespace Folklore\Hypernova;
 
 use Closure;
+use Symfony\Component\HttpFoundation\Response as BaseResponse;
 
 class HypernovaMiddleware
 {
@@ -18,6 +19,16 @@ class HypernovaMiddleware
     {
         $response = $next($request);
 
-        return app('hypernova')->modifyResponse($response);
+        if ($response instanceof BaseResponse &&
+            !$response->isRedirection() &&
+            (
+                !$response->headers->has('Content-Type') ||
+                strpos($response->headers->has('Content-Type'), 'text/html') !== false
+            )
+        ) {
+            return app('hypernova')->modifyResponse($response);
+        }
+
+        return $response;
     }
 }

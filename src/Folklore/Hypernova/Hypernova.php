@@ -5,7 +5,6 @@ namespace Folklore\Hypernova;
 use Illuminate\Container\Container;
 use Ramsey\Uuid\Uuid;
 use Folklore\Hypernova\Contracts\Renderer as RendererContract;
-use Symfony\Component\HttpFoundation\Response as BaseResponse;
 use Illuminate\Contracts\Support\Renderable;
 
 class Hypernova
@@ -117,17 +116,9 @@ class Hypernova
 
     public function modifyResponse($response)
     {
-        if ($response instanceof BaseResponse &&
-            !$response->isRedirection() &&
-            (
-                !$response->headers->has('Content-Type') ||
-                $response->headers->has('Content-Type') === 'text/html'
-            )
-        ) {
-            $content = $response->getContent();
-            $content = $this->replaceContents($content);
-            $response->setContent($content);
-        }
+        $content = $response->getContent();
+        $content = $this->replaceContents($content);
+        $response->setContent($content);
         return $response;
     }
 
