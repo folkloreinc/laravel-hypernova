@@ -52,4 +52,38 @@ class HypernovaMiddlewareTest extends TestCase
         $this->assertHtmlForJob($wrapperHtml, $this->job, $uuid);
         $this->clearViewCache();
     }
+
+    /**
+     * Test that handle reject redirect
+     *
+     * @test
+     * @covers ::handle
+     */
+    public function testHandleRejectRedirect()
+    {
+        $middleware = $this->app->make(HypernovaMiddleware::class);
+        $redirectResponse = redirect('/');
+        $next = function () use ($redirectResponse) {
+            return $redirectResponse;
+        };
+        $response = $middleware->handle(app('request'), $next);
+        $this->assertEquals($redirectResponse, $response);
+    }
+
+    /**
+     * Test that handle reject other content type than text/html
+     *
+     * @test
+     * @covers ::handle
+     */
+    public function testHandleRejectOtherContentType()
+    {
+        $middleware = $this->app->make(HypernovaMiddleware::class);
+        $jsonResponse = response()->json([]);
+        $next = function () use ($jsonResponse) {
+            return $jsonResponse;
+        };
+        $response = $middleware->handle(app('request'), $next);
+        $this->assertEquals($jsonResponse, $response);
+    }
 }
