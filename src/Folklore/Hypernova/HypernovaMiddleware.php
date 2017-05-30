@@ -23,7 +23,7 @@ class HypernovaMiddleware
             !$response->isRedirection() &&
             (
                 !$response->headers->has('Content-Type') ||
-                strpos($response->headers->has('Content-Type'), 'text/html') !== false
+                strpos($response->headers->get('Content-Type'), 'text/html') !== false
             )
         ) {
             return app('hypernova')->modifyResponse($response);
