@@ -74,9 +74,8 @@ class HypernovaServiceProvider extends ServiceProvider
     protected function registerRenderer()
     {
         $this->app->bind(RendererContract::class, function ($app) {
-            $host = $app['config']['hypernova.host'];
-            $port = $app['config']['hypernova.port'];
-            return new Renderer($host.':'.$port);
+            $host = $app['config']['hypernova.endpoint'];
+            return new Renderer($host);
         });
     }
 }
