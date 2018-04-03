@@ -139,11 +139,13 @@ class Hypernova
             $renderer->addJob($uuid, $job);
         }
         $response = $renderer->render();
-        //dd($response);
+        if($response->error !== null) {
+            throw new HypernovaException($response->error->getMessage());
+        }
         $results = [];
         foreach ($response->results as $uuid => $job) {
             if($job->error !== null) {
-                throw new \Exception(print_r($job->error, true));
+                throw new HypernovaException(print_r($job->error, true));
             }
             $html = preg_replace(
                 '/data-hypernova-id\=\"[^\"]+\"/i',
