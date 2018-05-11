@@ -20,6 +20,7 @@ class HypernovaMiddleware
         $response = $next($request);
 
         if ($response instanceof BaseResponse &&
+            $response->exception === null &&
             !$response->isRedirection() &&
             (
                 !$response->headers->has('Content-Type') ||
