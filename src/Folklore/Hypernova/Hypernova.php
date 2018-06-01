@@ -138,6 +138,7 @@ class Hypernova
         foreach ($jobs as $uuid => $job) {
             $renderer->addJob($uuid, $job);
         }
+        unset($this->jobs); //reset the jobs after processed to free memory
         $response = $renderer->render();
         if($response->error !== null) {
             throw new HypernovaException($response->error->getMessage());
