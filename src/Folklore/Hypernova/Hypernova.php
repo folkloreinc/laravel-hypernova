@@ -138,10 +138,16 @@ class Hypernova
         foreach ($jobs as $uuid => $job) {
             $renderer->addJob($uuid, $job);
         }
+        unset($this->jobs); //reset the jobs after processed to free memory
         $response = $renderer->render();
-
+        if($response->error !== null) {
+            throw new HypernovaException($response->error->getMessage());
+        }
         $results = [];
         foreach ($response->results as $uuid => $job) {
+            if($job->error !== null) {
+                throw new HypernovaException(print_r($job->error, true));
+            }
             $html = preg_replace(
                 '/data-hypernova-id\=\"[^\"]+\"/i',
                 'data-hypernova-id="'.$uuid.'"',

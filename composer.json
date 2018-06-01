@@ -19,8 +19,8 @@
     ],
     "require": {
         "php": ">=5.5.9",
-        "illuminate/support": "5.1.*|5.2.*|5.3.*|5.4.*|5.5.*",
-        "wayfair/hypernova-php": "^1.0",
+        "illuminate/support": "5.1.*|5.2.*|5.3.*|5.4.*|5.5.*|5.6.*",
+        "wayfair/hypernova-php": "^2.0",
         "ramsey/uuid": "^3.5"
     },
     "require-dev": {
@@ -37,6 +37,16 @@
         ],
         "psr-0": {
             "Folklore\\Hypernova\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Folklore\\Hypernova\\HypernovaServiceProvider"
+            ],
+            "aliases": {
+                "Hypernova": "Folklore\\Hypernova\\Facades\\Hypernova"
+            }
         }
     },
     "minimum-stability": "stable"
